@@ -4,6 +4,8 @@ defmodule Chromecast do
   """
   require Logger
   require Poison
+  require MIME
+  require URI
   use GenServer
   use Protobuf, from: Path.expand("../proto/cast_channel.proto", __DIR__)
 
@@ -25,7 +27,7 @@ defmodule Chromecast do
           receiver_status: %{},
           media_status: %{}
   end
-
+  @type streamType :: :BUFFERED | :LIVE | :NONE
   @namespace %{
       :con => "urn:x-cast:com.google.cast.tp.connection",
       :receiver => "urn:x-cast:com.google.cast.receiver",
@@ -57,6 +59,10 @@ defmodule Chromecast do
 
   def pause(device) do
       GenServer.call(device, :pause)
+  end
+
+  def stop(device) do
+    GenServer.call(device, :stop)
   end
 
   def set_volume(device, level) do
@@ -131,6 +137,26 @@ defmodule Chromecast do
       {:reply, :ok, send_msg(state.ssl, msg, state)}
   end
 
+  # TODO: this will require testing, especially for streamType
+  def handle_call({:play_media, url, contentType, streamType}, _from, state) do
+    msg = create_message(:media, %{
+        :mediaSessionId => state.media_session,
+        :requestId => state.request_id,
+        :type => "LOAD",
+        :MediaInformation => %{:contentId => url,
+            :contentType => MIME.type(contentType),
+            :streamType => streamType}
+    }, state.destination_id)
+    {:reply, :ok, send_msg(state.ssl, msg, state)}
+  end
+
+#   defp stream_type(streamType) do
+#     case  do
+#          ->
+
+#     end
+#   end
+
   def handle_call({:set_volume, level}, _from, state) do
       msg = create_message(:media, %{
           :mediaSessionId => state.media_session,
@@ -140,6 +166,15 @@ defmodule Chromecast do
       }, state.destination_id)
       {:reply, :ok, send_msg(state.ssl, msg, state)}
   end
+
+  def handle_call(:stop, _from, state) do
+    msg = create_message(:media, %{
+        :mediaSessionId => state.media_session,
+        :requestId => state.request_id,
+        :type => "STOP",
+    }, state.destination_id)
+    {:reply, :ok, send_msg(state.ssl, msg, state)}
+end
 
   def handle_info({:ssl_closed, _}, state) do
       Logger.debug("SSL Connection Closed. Re-opening...")

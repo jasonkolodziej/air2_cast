@@ -2,8 +2,10 @@ defmodule CastDevice do
   @moduledoc """
   Documentation for `Air2Cast`.
   """
+  # alias Mdns.Client.Device
   require Mdns.Client, as: Client
   require Mdns.EventManager, as: OnEvent
+  # @type Device :: Mdns.Client.Device
   @cast "_googlecast._tcp.local"
 
   defstruct controller: nil, hw_address: nil
