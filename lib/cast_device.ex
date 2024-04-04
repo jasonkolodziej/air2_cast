@@ -9,7 +9,6 @@ defmodule CastDevice do
   @cast "_googlecast._tcp.local"
 
   defstruct controller: nil, hw_address: nil
-  @spec find_devices() :: any()
   @doc """
   Hello world.
 
@@ -19,6 +18,7 @@ defmodule CastDevice do
       :world
 
   """
+  @spec find_devices() :: [Client.Device]
   def find_devices() do
     Client.start()
     #? allows for the registration of a callback

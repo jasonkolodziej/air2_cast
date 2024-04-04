@@ -26,8 +26,10 @@ defmodule Air2Cast.MixProject do
       {:mdns, "~> 1.0"},
       {:exprotobuf, "~> 1.2"},
       {:poison, "~> 2.2.0"},
-      {:rambo, "~> 0.3.4"},
-      {:mime, "~> 2.0"}
+      # {:rambo, "~> 0.3.4"},
+      {:mime, "~> 2.0"},
+      {:exile, "~> 0.9.1"},
+      {:plug, "~> 1.15"}
       # {:chromecast, "~> 0.1.5"},
       # {:ffmpex, "~> 0.10.0"}
     ]
