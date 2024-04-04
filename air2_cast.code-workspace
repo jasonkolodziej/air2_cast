@@ -1,14 +1,12 @@
 {
-	"folders": [
-		{
-			"path": "."
-		}
-	],
-	"settings": {},
-	"extensions": {
-		"recommendations": [
-			"mjmcloug.vscode-elixir",
-			"jakebecker.elixir-ls"
-		]
-	}
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "extensions": {
+        "recommendations": [
+            "jakebecker.elixir-ls"
+        ]
+    }
 }

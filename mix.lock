@@ -1,0 +1,11 @@
+%{
+  "chromecast": {:hex, :chromecast, "0.1.5", "6ffd7615b2abdee3c2394c7190f18c6fb17d67736c00eca11860fa904552a466", [:mix], [{:exprotobuf, "~> 1.1.0", [hex: :exprotobuf, repo: "hexpm", optional: false]}, {:poison, "~> 2.2.0", [hex: :poison, repo: "hexpm", optional: false]}], "hexpm", "61021ed7b0ee3b19aeaba800d65c1f418b4e41b245a9877ee80cbbc05edb4837"},
+  "dns": {:hex, :dns, "2.4.0", "44790a0375b28bdc7b59fc894460bfcb03ffeec4c5984e2c3e8b0797b1518327", [:mix], [], "hexpm", "e178e353c469820d02ba889d6a80d01c8c27b47dfcda4016a9cbc6218e3eed64"},
+  "exprotobuf": {:hex, :exprotobuf, "1.2.17", "3003937da617f588a8fb63ebdd7b127a18d78d6502623c272076fd54c07c4de1", [:mix], [{:gpb, "~> 4.0", [hex: :gpb, repo: "hexpm", optional: false]}], "hexpm", "e07ec1e5ae6f8c1c8521450d5f6b658c8c700b1f34c70356e91ece0766f4361a"},
+  "ffmpex": {:hex, :ffmpex, "0.10.0", "ce29281eac60bf109c05acb4342eecf813a3cd3f08c1bce350423caad86128af", [:mix], [{:jason, "~> 1.2", [hex: :jason, repo: "hexpm", optional: false]}, {:rambo, "~> 0.3.0", [hex: :rambo, repo: "hexpm", optional: false]}], "hexpm", "de8d81f8c51cc258dcee9a3e0b1568b0659c97be004557d9af47795206cff53b"},
+  "gpb": {:hex, :gpb, "4.21.1", "72e229c242d252d690addcfd04a6416c26c4d4d2c3521e05570a7a78b48d3bd1", [:make, :rebar3], [], "hexpm", "c05c9aea9e25bd341367a43b3d3eb68e951563911072259c5ec4cb6642f4ef22"},
+  "jason": {:hex, :jason, "1.4.1", "af1504e35f629ddcdd6addb3513c3853991f694921b1b9368b0bd32beb9f1b63", [:mix], [{:decimal, "~> 1.0 or ~> 2.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm", "fbb01ecdfd565b56261302f7e1fcc27c4fb8f32d56eab74db621fc154604a7a1"},
+  "mdns": {:hex, :mdns, "1.0.13", "7e56a193942826232a799171a2bc50977acc41981e2dc3693196df61ca272005", [:mix], [{:dns, "~> 2.4", [hex: :dns, repo: "hexpm", optional: false]}], "hexpm", "c16129884f9fb49233d5f03d00148e813ef5841864fc4b629e6b8e1307eaecbc"},
+  "poison": {:hex, :poison, "2.2.0", "4763b69a8a77bd77d26f477d196428b741261a761257ff1cf92753a0d4d24a63", [:mix], [], "hexpm", "519bc209e4433961284174c497c8524c001e285b79bdf80212b47a1f898084cc"},
+  "rambo": {:hex, :rambo, "0.3.4", "8962ac3bd1a633ee9d0e8b44373c7913e3ce3d875b4151dcd060886092d2dce7", [:mix], [], "hexpm", "0cc54ed089fbbc84b65f4b8a774224ebfe60e5c80186fafc7910b3e379ad58f1"},
+}
