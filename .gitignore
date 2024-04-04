@@ -20,7 +20,7 @@ erl_crash.dump
 *.ez
 
 # Ignore package tarball (built via "mix hex.build").
-elixer_template-*.tar
+air2_cast-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/

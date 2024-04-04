@@ -1,9 +1,9 @@
-defmodule ElixerTemplate.MixProject do
+defmodule Air2Cast.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :elixer_template,
+      app: :air2_cast,
       version: "0.1.0",
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
