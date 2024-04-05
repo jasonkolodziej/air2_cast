@@ -2,12 +2,44 @@ defmodule FFmpeg do
  @moduledoc """
   Returns ffmpeg command as list of string
   """
+  @ffmpeg "ffmpeg"
 
+  defmacro __using__(_opts) do
+    quote do
+      :transcoder = transcode_audio
+    end
+  end
+@doc """
+transcode_audio takes stream input that will be piped to ffmpeg and returns stdout as `Exile.Stream`
+"""
+@spec transcode_audio(Exile.Stream.t()) :: Exile.Stream.t()
+def transcode_audio(input) do
+  args = [
+    "-y",
+    "-re",
+    "-fflags",  #* AVOption flags (default 200)
+    "nobuffer", #* reduce the latency introduced by optional buffering
+    "-f", "s16le",
+    "-ar", "44100",
+    "-ac", "2",
+    # "-re",         #* encode at 1x playback speed, to not burn the CPU
+    "-i", "pipe:0", #* input from pipe (stdout->stdin)
+    # "-ar", "44100", #* AV sampling rate
+    #"-c:a", "flac", #* audio codec
+     "-sample_fmt", "44100", #* sampling rate
+    "-ac", "2", #* audio channels, chromecasts don't support more than two audio channels
+    # "-f", "mp4", #* fmt force format
+    "-bits_per_raw_sample", "8",
+    "-f", "adts",
+    "pipe:1", #* output to pipe (stdout->)
+  ]
+  [@ffmpeg | args] |> Exile.stream!(input: input)
+end
   @doc """
   Returns ffmpeg command with arguments for adding watermark
   """
-  @spec watermark(String.t(), String.t(), String.t(), map()) :: [String.t()] | []
-  def watermark(input, text, output, text_opts \\ []) do
+  @spec watermark(String.t(), String.t(), String.t(), map()) :: [any()]
+  def watermark(input, text, output, text_opts) do
     # add text with white color font and transparency of 0.5
     filter_graph =
       [
@@ -46,7 +78,7 @@ defmodule FFmpeg.Server do
   alias Plug.RequestId
   use Plug.Router
   require Logger
-  require Exile, as: ExCmd
+  require Exile
   require RequestId
 
   plug(Plug.Parsers, parsers: [], pass: ["*/*"])
@@ -57,7 +89,7 @@ defmodule FFmpeg.Server do
     %{"video_url" => video_url, "text" => text} = conn.params
 
     cmd = FFmpeg.watermark("pipe:0", text, "-", x: 20, y: 20)
-    output_stream = ExCmd.stream!(cmd, input: &Req.get!(video_url, into: &1))
+    output_stream = Exile.stream!(cmd, input: &Req.get!(video_url, into: &1))
 
     conn =
       conn

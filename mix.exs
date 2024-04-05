@@ -29,7 +29,9 @@ defmodule Air2Cast.MixProject do
       # {:rambo, "~> 0.3.4"},
       {:mime, "~> 2.0"},
       {:exile, "~> 0.9.1"},
-      {:plug, "~> 1.15"}
+      {:plug, "~> 1.15"},
+      {:req, "~> 0.4.14"},
+      {:net_address, "~> 0.3.0"}
       # {:chromecast, "~> 0.1.5"},
       # {:ffmpex, "~> 0.10.0"}
     ]

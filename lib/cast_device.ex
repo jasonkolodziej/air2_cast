@@ -2,13 +2,26 @@ defmodule CastDevice do
   @moduledoc """
   Documentation for `Air2Cast`.
   """
+
+
+  @type mac_address :: Mac.t()
+
+  defstruct controller: nil, hw_address: :mac_address
+
+
+
+end
+
+
+defmodule CastDevice.FindDevices do
+  @moduledoc """
+
+  """
   # alias Mdns.Client.Device
   require Mdns.Client, as: Client
   require Mdns.EventManager, as: OnEvent
   # @type Device :: Mdns.Client.Device
   @cast "_googlecast._tcp.local"
-
-  defstruct controller: nil, hw_address: nil
   @doc """
   Hello world.
 
@@ -18,8 +31,9 @@ defmodule CastDevice do
       :world
 
   """
-  @spec find_devices() :: [Client.Device]
-  def find_devices() do
+
+  @spec start!() :: [Client.Device]
+  def start!() do
     Client.start()
     #? allows for the registration of a callback
     OnEvent.register()
@@ -29,6 +43,4 @@ defmodule CastDevice do
     # ? Returns a list of devices
     Client.devices()
   end
-
-
 end
