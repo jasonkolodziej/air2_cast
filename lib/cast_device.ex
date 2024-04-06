@@ -2,22 +2,53 @@ defmodule CastDevice do
   @moduledoc """
   Documentation for `Air2Cast`.
   """
+  @enforce_keys [:ip_address]
+  defstruct mac_address: nil, ip_address: nil, cast_info: nil
+  @type t :: %__MODULE__{mac_address: Mac.t, ip_address: IP.t}
 
-  @type mac_address :: Mac.t()
-  defmodule ArpData do
-    @derive {Inspect, only: :hostname}
-    @type t :: %__MODULE__{hostname: nil | String, # 0
-        ip_addr: IP| nil,
-        # 4 "at"
-        #? (ArgumentError) malformed mac address string 60:3e:5f:8b:8:73
-        mac: Mac|nil,
-        # mac: Enum.at(e, 3) |> Mac.from_string!, # 3
-        # 4 "on"
-        interface_name: String|nil, #5
-        layer: String|nil #6
-      }
+  defimpl String.Chars, for: CastDevice do
+    def to_string(cast_device) do
+      "mac_address: #{cast_device.mac_address}, ip_address: #{cast_device.ip_address}"
+    end
+  end
 
-end
+
+  @spec from_ip_address!(IP.t) :: t
+  def from_ip_address!(ip_address) do
+   t = from_ip_address(ip_address)
+    t
+  end
+
+  @spec from_ip_address(IP.t):: {:ok, t} | {:error, term}
+  def from_ip_address(ip_address) do
+    mac_string = Exile.stream!(["arp", "-n", IP.to_string(ip_address)])
+    |> Enum.to_list()
+    |> Enum.at(0)
+    |> String.split("\n")
+    |> Enum.map(
+      fn line ->
+        String.split(line, " ") |> Enum.at(3) # |> Mac.from_string! # Mac address
+      end)
+    |> Enum.at(0)
+    case Mac.from_string(mac_string) do
+      {:ok, mac} -> %CastDevice{mac_address: mac, ip_address: ip_address}
+      {:error, :einval} ->
+        raise ArgumentError, "#{IO.inspect(mac_string)} is not a string"
+    end
+  end
+
+
+  # @spec arp_lookup :: t
+  # defp arp_lookup, do
+  # Exile.stream!(args) |> Enum.to_list(["arp", "-n", :ip_address])
+  #     |> Enum.at(0)
+  #     |> String.split("\n")
+  #     |> Enum.map(
+  #       fn line ->
+  #         String.split(line, " ") |> Enum.at(3) |> Mac.from_string! # Mac address
+  #       end)
+  #     |> Enum.at(0)
+  # end
 
 end
 
@@ -90,38 +121,32 @@ defmodule CastDevice.FindDevices do
   """
   @spec arp_lookup(IP.t()) :: [Mac.t()]
   def arp_lookup(address) do
-    resp = Exile.stream!(["arp", "-a"]) |>
-    Enum.to_list()
-    resp |> Enum.at(0) |>
-    String.split("\n") |>
-    Enum.map(maker) |> Enum.reduce(
+    resp = Exile.stream!(["arp", "-a"])
+    |> Enum.to_list()
+    |> Enum.at(0)
+    |> String.split("\n")
+    |> Enum.map(
+        fn line ->
+          e = String.split(line, " ")
+          %{
+            hostname: Enum.at(e, 0), # 0
+            ip_addr: Enum.at(e, 1) |> String.trim_leading("(") |> String.trim_trailing(")") |> IP.from_string!, # 1
+            # 4 "at"
+            #? (ArgumentError) malformed mac address string 60:3e:5f:8b:8:73
+            mac: nil,
+            # mac: Enum.at(e, 3) |> Mac.from_string!, # 3
+            # 4 "on"
+            interface_name: Enum.at(e, 5), #5
+            layer: Enum.join(Enum.drop(e, 5), " ") #6
+          }
+        end)
+      |> Enum.filter(
         fn struc ->
           struc[:ip_addr] === address
-        end) |> Enum.map(fn s-> s[:mac] end)
-
+        end)
+      |> Enum.map(
+        fn s-> s[:mac]
+        end)
         resp
   end
-  defp maker(line) do
-      e = String.split(line, " ")
-      s = %ArpData{
-        hostname: Enum.at(e, 0), # 0
-        ip_addr: Enum.at(e, 1) |> String.trim_leading("(") |> String.trim_trailing(")") |> IP.from_string!, # 1
-        # 4 "at"
-        #? (ArgumentError) malformed mac address string 60:3e:5f:8b:8:73
-        mac: nil,
-        # mac: Enum.at(e, 3) |> Mac.from_string!, # 3
-        # 4 "on"
-        interface_name: Enum.at(e, 5), #5
-        layer: Enum.join(Enum.drop(e, 5), " ") #6
-  }
-      try do
-        s.mac = Enum.at(e, 3) |> Mac.from_string!
-      rescue ArgumentError -> nil
-      catch
-        a ->
-          IO.puts("OHHHH #{inspect(a)}")
-      after
-        s.mac = Enum.at(e, 3)
-      end
-    end
 end

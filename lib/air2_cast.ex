@@ -19,7 +19,8 @@ defmodule Air2Cast do
   """
   def start(_type, _args) do
     IO.puts "starting"
-    IP.from_string!("192.168.1.193") |>CastDevice.arp_lookup|> IO.puts
+    # d = %CastDevice{ip_address: , mac_address: nil}
+    CastDevice.from_ip_address!(IP.from_string!("192.168.1.193")) |> IO.puts
     # IO.puts(all[0])
 
       #     [IPaddr, _HWType, _Flags, MAC | _] ->
