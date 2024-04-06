@@ -14,6 +14,7 @@ defmodule Air2Cast.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
+      mod: {Air2Cast, []},
       extra_applications: [:logger]
     ]
   end
@@ -31,7 +32,7 @@ defmodule Air2Cast.MixProject do
       {:exile, "~> 0.9.1"},
       {:plug, "~> 1.15"},
       {:req, "~> 0.4.14"},
-      {:net_address, "~> 0.3.0"}
+      {:net_address, "~> 0.3.0"},
       # {:chromecast, "~> 0.1.5"},
       # {:ffmpex, "~> 0.10.0"}
     ]
