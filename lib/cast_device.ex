@@ -14,12 +14,12 @@ defmodule CastDevice do
   end
 
 
-  @spec from_ip_address!(IP.t()) :: CastDevice.t()
+  @spec from_ip_address!(IP.t) :: t
   def from_ip_address!(ip_address) do
     from_ip_address(ip_address)
   end
 
-  @spec from_ip_address(IP.t()):: {:ok, t} | {:error, :einval}
+  @spec from_ip_address(IP.t):: {:ok, t} | {:error, :einval}
   def from_ip_address(ip_address) do
     mac_string = Exile.stream!(["arp", "-n", IP.to_string(ip_address)])
       |> Enum.to_list()
