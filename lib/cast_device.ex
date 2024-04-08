@@ -2,38 +2,37 @@ defmodule CastDevice do
   @moduledoc """
   Documentation for `Air2Cast`.
   """
+  require IP
   @enforce_keys [:ip_address]
   defstruct mac_address: nil, ip_address: nil, cast_info: nil
-  @type t :: %__MODULE__{mac_address: Mac.t, ip_address: IP.t}
+  @type t :: %__MODULE__{mac_address: Mac, ip_address: IP}
 
   defimpl String.Chars, for: CastDevice do
     def to_string(cast_device) do
-      "mac_address: #{cast_device.mac_address}, ip_address: #{cast_device.ip_address}"
+      "mac_address: #{Mac.to_string(cast_device.mac_address)}, ip_address: #{IP.to_string(cast_device.ip_address)}"
     end
   end
 
 
-  @spec from_ip_address!(IP.t) :: t
+  @spec from_ip_address!(IP.t()) :: CastDevice.t()
   def from_ip_address!(ip_address) do
-   t = from_ip_address(ip_address)
-    t
+    from_ip_address(ip_address)
   end
 
-  @spec from_ip_address(IP.t):: {:ok, t} | {:error, term}
+  @spec from_ip_address(IP.t()):: {:ok, t} | {:error, :einval}
   def from_ip_address(ip_address) do
     mac_string = Exile.stream!(["arp", "-n", IP.to_string(ip_address)])
-    |> Enum.to_list()
-    |> Enum.at(0)
-    |> String.split("\n")
-    |> Enum.map(
-      fn line ->
-        String.split(line, " ") |> Enum.at(3) # |> Mac.from_string! # Mac address
-      end)
-    |> Enum.at(0)
+      |> Enum.to_list()
+      |> Enum.at(0)
+      |> String.split("\n")
+      |> Enum.map(
+        fn line ->
+          String.split(line, " ") |> Enum.at(3) # |> Mac.from_string! # Mac address
+        end)
+      |> Enum.at(0)
     case Mac.from_string(mac_string) do
       {:ok, mac} -> %CastDevice{mac_address: mac, ip_address: ip_address}
-      {:error, :einval} ->
-        raise ArgumentError, "#{IO.inspect(mac_string)} is not a string"
+      {:error, _} -> raise ArgumentError, "malformed mac address #{mac_string}"
     end
   end
 

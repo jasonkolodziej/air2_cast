@@ -17,23 +17,12 @@ defmodule Air2Cast do
       :world
 
   """
+ #  @spec start(_type, _args) :: :ok | :error
   def start(_type, _args) do
     IO.puts "starting"
     # d = %CastDevice{ip_address: , mac_address: nil}
-    CastDevice.from_ip_address!(IP.from_string!("192.168.1.193")) |> IO.puts
-    # IO.puts(all[0])
+    CastDevice.from_ip_address!(IP.from_string!("192.168.1.195")) |> IO.puts
 
-      #     [IPaddr, _HWType, _Flags, MAC | _] ->
-      #       List.to_tuple([
-      #         List.to_integer(E, 16)
-      #       || E <- &String.split(
-      #         &1, ":")
-      #       ]);
-      #       _ -> arp_lookup_iter(fh, IPaddr)
-
-    #IP.from_string!("192.168.1.193") |> :procket. |> IO.puts
-  #  :inet_ext.parse_address("192.168.1.193") |> :inet_ext.route |> IO.puts
-    # some more stuff
   end
 
 
