@@ -33,6 +33,7 @@ defmodule Air2Cast.MixProject do
       {:plug, "~> 1.15"},
       {:req, "~> 0.4.14"},
       {:net_address, "~> 0.3.0"},
+      {:uuid, "~> 1.1"}
       # {:chromecast, "~> 0.1.5"},
       # {:ffmpex, "~> 0.10.0"}
     ]

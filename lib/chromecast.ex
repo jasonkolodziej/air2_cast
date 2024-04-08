@@ -268,3 +268,25 @@ end
     end
   end
 end
+
+defmodule Chromecast.MdnsPayload do
+
+    defstruct bs: nil, ca: nil, fn: nil, ic: nil, id: nil, md: nil, rm: nil, rs: nil, st: nil, ve: nil
+    @type t :: %__MODULE__{
+        bs: String.t,   # "bs" => "FA8FCA79C426",
+        ca: Integer.t,        # "ca" => "4101",
+        fn: String.t,   # "fn" => "CRT-Labs",
+        ic: String.t,        # "ic" => "/setup/icon.png",
+        id: UUID.t,     # "id" => "e0617de7e2df63476fab257c8327ef3b",
+        md: String.t,   # "md" => "Chromecast",
+        rm: String.t,   # "rm" => "E81C9A486980AA48",
+        rs: String.t,   # "rs" => "",
+        st: String.t,   # "st" => "0",
+        ve: String.t,    # "ve" => "05"
+    }
+
+    @spec is_tv!(t()) :: boolean()
+    def is_tv!(t) do
+        String.contains?(String.upcase(t.fn), "TV")
+    end
+end

@@ -2,10 +2,12 @@ defmodule CastDevice do
   @moduledoc """
   Documentation for `Air2Cast`.
   """
+  alias Mdns.Client
   require IP
   @enforce_keys [:ip_address]
-  defstruct mac_address: nil, ip_address: nil, cast_info: nil
+  defstruct mac_address: nil, ip_address: nil, device_record: nil, cast_info: nil
   @type t :: %__MODULE__{mac_address: Mac, ip_address: IP}
+  @type cast_info :: Chromecast
 
   defimpl String.Chars, for: CastDevice do
     def to_string(cast_device) do
@@ -21,7 +23,11 @@ defmodule CastDevice do
 
   @spec from_ip_address(IP.t):: {:ok, t} | {:error, :einval}
   def from_ip_address(ip_address) do
-    mac_string = Exile.stream!(["arp", "-n", IP.to_string(ip_address)])
+    mac_string =
+    case :os.type() do
+      {:win32, _} -> Exile.stream!(["arp", "/n", IP.to_string(ip_address)])
+      {:unix, _} -> Exile.stream!(["arp", "-n", IP.to_string(ip_address)])
+    end
       |> Enum.to_list()
       |> Enum.at(0)
       |> String.split("\n")
@@ -34,6 +40,15 @@ defmodule CastDevice do
       {:ok, mac} -> %CastDevice{mac_address: mac, ip_address: ip_address}
       {:error, _} -> raise ArgumentError, "malformed mac address #{mac_string}"
     end
+  end
+
+  @spec from_device_record!(Client.Device.t) :: t
+  def from_device_record!(device_record) do
+    CastDevice.FindDevices.start!()
+      |> Enum.map(
+        fn device ->
+          %Chromecast.MdnsPayload{device.payload}
+        end)
   end
 
 
@@ -87,9 +102,7 @@ defmodule CastDevice.FindDevices do
     Client.devices()
   end
 
-  # defstruct controller: nil, hw_address: :mac_address
   @doc """
-
     # Erlang
         # %%-------------------------------------------------------------------------
         # %% Lookup the MAC address of an IP
