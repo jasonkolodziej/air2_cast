@@ -2,6 +2,7 @@ defmodule Air2Cast do
   @moduledoc """
   Documentation for `Air2Cast`.
   """
+  require Logger
   use Application
   require IP
   # require :inet_ext
@@ -20,8 +21,19 @@ defmodule Air2Cast do
  #  @spec start(_type, _args) :: :ok | :error
   def start(_type, _args) do
     IO.puts "starting"
+    vals = CastDevice.FindDevices.start!()
+    Logger.debug("start: #{inspect(vals)}")
+
+    vv = CastDevice.from_device_records(vals)
+    Logger.debug("start: #{inspect(vv)}")
+
+
     # d = %CastDevice{ip_address: , mac_address: nil}
-    CastDevice.from_ip_address!(IP.from_string!("192.168.1.195")) |> IO.puts
+
+    # CastDevice.from_ip_address!(IP.from_string!("192.168.1.195")) |> IO.puts
+
+    # String.match?(test, other) |> IO.puts
+    # Map.take()
 
   end
 
