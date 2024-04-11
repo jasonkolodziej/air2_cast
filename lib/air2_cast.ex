@@ -21,11 +21,17 @@ defmodule Air2Cast do
  #  @spec start(_type, _args) :: :ok | :error
   def start(_type, _args) do
     IO.puts "starting"
-    vals = CastDevice.FindDevices.start!()
-    Logger.debug("start: #{inspect(vals)}")
+    devs = CastDevice.FindDevices.start!
+    # devices = []
+    # devices = for d <- 0..length(devs) do
+    #   [struct(CastDevice, device_record: Enum.at(devs, d))]
+    # end |> List.flatten
+    devices = CastDevice.from_device_records(devs)|> Enum.map(fn el -> CastDevice.update!(el) end)
 
-    vv = CastDevice.from_device_records(vals)
-    Logger.debug("start: #{inspect(vv)}")
+    IO.puts "start: #{inspect(devices)}"
+
+    # vv = CastDevice.from_device_records(vals)
+    # Logger.debug("start: #{inspect(vv)}")
 
 
     # d = %CastDevice{ip_address: , mac_address: nil}

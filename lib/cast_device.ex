@@ -8,7 +8,7 @@ defmodule CastDevice do
   require IP
   @enforce_keys [:ip_address]
   defstruct mac_address: nil, ip_address: nil, device_record: nil, cast_info: nil
-  @type t :: %__MODULE__{mac_address: Mac.t, ip_address: IP.t, device_record: nil}
+  @type t :: %__MODULE__{mac_address: Mac.t, ip_address: IP.t, device_record: Client.Device.t}
   @type cast_info :: Chromecast
 
   defimpl String.Chars, for: CastDevice do
@@ -55,20 +55,20 @@ defmodule CastDevice do
 
   @spec from_device_records(list(Client.Device.t)) :: list(t)
   def from_device_records(records) when is_list(records) do
-    Enum.map(records, fn item -> from_device_record(item) end)
+    for d <- 0..length(records) do
+      # ee = Enum.at(records, d)
+      IO.puts("#{is_struct(Enum.at(records, d), Client.Device)}")
+      [struct(CastDevice, device_record: Enum.at(records, d))]
+    end |> List.flatten
   end
 
-  # @spec arp_lookup :: t
-  # defp arp_lookup, do
-  # Exile.stream!(args) |> Enum.to_list(["arp", "-n", :ip_address])
-  #     |> Enum.at(0)
-  #     |> String.split("\n")
-  #     |> Enum.map(
-  #       fn line ->
-  #         String.split(line, " ") |> Enum.at(3) |> Mac.from_string! # Mac address
-  #       end)
-  #     |> Enum.at(0)
-  # end
+  def update!(element) when is_struct(element, CastDevice) do
+    if is_struct(element.device_record, Client.Device) do
+      struct!(element, ip_address: element.device_record.ip,
+      mac_address: CastDevice.Mac.mac_addr(IP.to_string(element.device_record.ip)))
+    end
+  end
+
   defp fix_mac_string(mac_string) do
     val = String.split(mac_string, ":")
     |> Enum.map(
@@ -85,6 +85,57 @@ defmodule CastDevice do
     Mac.from_string!(val)
   end
 end
+
+defmodule CastDevice.Mac do
+  @spec mac_addr(
+    String.t
+        ) :: Mac.t
+  def mac_addr(ip_address) do
+    args = case :os.type() do
+        {:win32, _} ->["arp", "/n", ip_address]
+        {:unix, _} -> ["arp", "-n", ip_address]
+    end
+    term = Exile.stream!(args)
+      |> Enum.to_list
+      |> Enum.at(0)
+          # |> String.split("\n")
+        IO.puts(term)
+        # ans =  Enum.map( term,
+        #   fn line ->
+        #     String.split(line, " ") |> Enum.at(3) # |> Mac.from_string! # Mac address
+        #   end)
+        # |> Enum.at(0) |> fix_mac_string
+        # ans
+  end
+  defp fix_mac_string(mac_string) do
+    val = String.split(mac_string, ":")
+    |> Enum.map(
+      fn piece ->
+        if length(String.to_charlist(piece)) != 2 do
+          "0#{piece}"
+        else
+          piece
+        end
+      end
+    )
+    |> Enum.join(":")
+    Logger.debug("Fix_mac adder: #{inspect(val)}")
+    Mac.from_string!(val)
+  end
+end
+
+
+  # @spec arp_lookup :: t
+  # defp arp_lookup, do
+  # Exile.stream!(args) |> Enum.to_list(["arp", "-n", :ip_address])
+  #     |> Enum.at(0)
+  #     |> String.split("\n")
+  #     |> Enum.map(
+  #       fn line ->
+  #         String.split(line, " ") |> Enum.at(3) |> Mac.from_string! # Mac address
+  #       end)
+  #     |> Enum.at(0)
+  # end
 
 
 
@@ -125,40 +176,6 @@ defmodule CastDevice.FindDevices do
       _ -> Client.devices()
     end
     |> Map.get(String.to_existing_atom(@cast))
-  end
-
-  def handle_info({:udp, _socket, ip, _port, packet}, state) do
-    {:noreply, handle_packet(ip, packet, state)}
-  end
-
-  def handle_packet(ip, packet, state) do
-    record = DNS.Record.decode(packet)
-
-    case record.header.qr do
-      true -> handle_response(ip, record, state)
-      _ -> state
-    end
-  end
-
-  def handle_response(ip, record, state) do
-    Logger.debug("hookmDNS got response: #{inspect(record)}")
-    device = Client.get_device(ip, record, state)
-
-    devices =
-      Enum.reduce(state.queries, %{:other => []}, fn query, acc ->
-        cond do
-          Enum.any?(device.services, fn service -> String.ends_with?(service, query) end) ->
-            {namespace, devices} = Client.create_namespace_devices(query, device, acc, state)
-            Mdns.EventManager.notify({namespace, device})
-            Logger.debug("mDNS device: #{inspect({namespace, device})}")
-            devices
-
-          true ->
-            Map.merge(acc, state.devices)
-        end
-      end)
-
-    %Mdns.Client.State{state | :devices => devices}
   end
 
   @doc """
