@@ -214,14 +214,14 @@ defmodule Chromecast do
     @impl true
     def init(state) do
         Logger.debug("init:")
-        {:connect, nil, state}
+        {:connect, :init, state}
         # {:connect, :init, state}
     end
 
     @impl true
     def handle_call(:state, _from, state) do
         Logger.debug("handle_call.:state:")
-        {:reply, state,state}
+        {:noreply, state, state}
         # case recv_message() do
         #     {:ok, _} = ok ->
         #       {:reply, ok, s}
@@ -300,7 +300,7 @@ defmodule Chromecast do
 
     @impl true
     # def handle_info({:ssl, {sslsocket, new_ssl, _}, data}, state) do
-    def handle_info({:ssl, {:sslsocket, new_ssl, _}, data}, state) do
+    def handle_info({:ssl, {:sslsocket, _, _}, data}, state) do
         Logger.debug("handle_info.:ssl:")
         {messages, rest} = decode(state.rest <> data)
         case handle_messages(messages, state) do
@@ -308,19 +308,19 @@ defmodule Chromecast do
             state -> {:noreply, %{state | rest: rest}}
           end
 
-      state =
-        case data |> decode do
-          {:error, _} ->
-            Logger.debug("handle_info.:ssl:error")
-            state
-          %{payload_utf8: nil} ->
-            Logger.debug("handle_info.:ssl:2")
-            state
-          %{payload_utf8: payload} ->
-            Logger.debug("Chromecast Data: #{payload}")
-            payload |> Poison.Parser.parse! |> handle_payload(state)
-        end
-      {:noreply, state}
+    #   state =
+    #     case data |> decode do
+    #       {:error, _} ->
+    #         Logger.debug("handle_info.:ssl:error")
+    #         state
+    #       %{payload_utf8: nil} ->
+    #         Logger.debug("handle_info.:ssl:2")
+    #         state
+    #       %{payload_utf8: payload} ->
+    #         Logger.debug("Chromecast Data: #{payload}")
+    #         payload |> Poison.Parser.parse! |> handle_payload(state)
+    #     end
+    #   {:noreply, state}
     end
 
     defp handle_messages(messages, state) do
