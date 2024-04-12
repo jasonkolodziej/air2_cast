@@ -21,14 +21,17 @@ defmodule Air2Cast do
  #  @spec start(_type, _args) :: :ok | :error
   def start(_type, _args) do
     IO.puts "starting"
-    devs = CastDevice.FindDevices.start!
+    # devs = CastDevice.FindDevices.start!
+    {:ok, device} = Chromecast.start_link({192, 168, 2, 219})
+    Chromecast.state(device)
+    Chromecast.state(device)
+
     # devices = []
     # devices = for d <- 0..length(devs) do
     #   [struct(CastDevice, device_record: Enum.at(devs, d))]
     # end |> List.flatten
-    devices = CastDevice.from_device_records(devs)|> Enum.map(fn el -> CastDevice.update!(el) end)
-
-    IO.puts "start: #{inspect(devices)}"
+    # devices = CastDevice.from_device_records(devs)|> Enum.map(fn el -> CastDevice.update!(el) end)
+    # devices = CastDevice.ArpData.collect
 
     # vv = CastDevice.from_device_records(vals)
     # Logger.debug("start: #{inspect(vv)}")

@@ -15,7 +15,7 @@ defmodule Air2Cast.MixProject do
   def application do
     [
       mod: {Air2Cast, []},
-      extra_applications: [:logger]
+      extra_applications: [:logger, :ssl, :exprotobuf, :poison]
     ]
   end
 
@@ -33,7 +33,9 @@ defmodule Air2Cast.MixProject do
       {:plug, "~> 1.15"},
       {:req, "~> 0.4.14"},
       {:net_address, "~> 0.3.0"},
-      {:uuid, "~> 1.1"}
+      {:uuid, "~> 1.1"},
+      {:exconstructor, "~> 1.2.11"},
+      {:socket, "~> 0.3.13"}
       # {:chromecast, "~> 0.1.5"},
       # {:ffmpex, "~> 0.10.0"}
     ]
