@@ -1,6 +1,7 @@
 %{
   "castore": {:hex, :castore, "1.0.6", "ffc42f110ebfdafab0ea159cd43d31365fa0af0ce4a02ecebf1707ae619ee727", [:mix], [], "hexpm", "374c6e7ca752296be3d6780a6d5b922854ffcc74123da90f2f328996b962d33a"},
   "chromecast": {:hex, :chromecast, "0.1.5", "6ffd7615b2abdee3c2394c7190f18c6fb17d67736c00eca11860fa904552a466", [:mix], [{:exprotobuf, "~> 1.1.0", [hex: :exprotobuf, repo: "hexpm", optional: false]}, {:poison, "~> 2.2.0", [hex: :poison, repo: "hexpm", optional: false]}], "hexpm", "61021ed7b0ee3b19aeaba800d65c1f418b4e41b245a9877ee80cbbc05edb4837"},
+  "connection": {:hex, :connection, "1.1.0", "ff2a49c4b75b6fb3e674bfc5536451607270aac754ffd1bdfe175abe4a6d7a68", [:mix], [], "hexpm", "722c1eb0a418fbe91ba7bd59a47e28008a189d47e37e0e7bb85585a016b2869c"},
   "dns": {:hex, :dns, "2.4.0", "44790a0375b28bdc7b59fc894460bfcb03ffeec4c5984e2c3e8b0797b1518327", [:mix], [], "hexpm", "e178e353c469820d02ba889d6a80d01c8c27b47dfcda4016a9cbc6218e3eed64"},
   "elixir_make": {:hex, :elixir_make, "0.8.3", "d38d7ee1578d722d89b4d452a3e36bcfdc644c618f0d063b874661876e708683", [:mix], [{:castore, "~> 0.1 or ~> 1.0", [hex: :castore, repo: "hexpm", optional: true]}, {:certifi, "~> 2.0", [hex: :certifi, repo: "hexpm", optional: true]}], "hexpm", "5c99a18571a756d4af7a4d89ca75c28ac899e6103af6f223982f09ce44942cc9"},
   "exconstructor": {:hex, :exconstructor, "1.2.13", "7021eed1450202dcbcd1ef021d6aacf7351854ff9d7964f166931567f9dfa9fb", [:mix], [], "hexpm", "69d3f0251a07bb7c5ef85bde22a1eee577dfbb49852d77fb7ad7b937035aeef2"},

@@ -1,7 +1,9 @@
 defmodule Chromecast do
-  alias Chromecast.CastMessage
+#   alias Chromecast.CastMessage, as: Message
     require Logger
-    use GenServer
+    use Connection
+    require GenServer
+
     use Protobuf, from: Path.expand("../proto/cast_channel.proto", __DIR__)
 
     @ping "PING"
@@ -34,7 +36,9 @@ defmodule Chromecast do
             destination_id: "receiver-0",
             ssl: nil,
             ip: nil,
+            port: 8009,
             request_id: 0,
+            rest: "",
             receiver_status: %{},
             media_status: %{}
     end
@@ -57,9 +61,15 @@ defmodule Chromecast do
         :youtube => "urn:x-cast:com.google.youtube.mdx",
     }
 
+    #defdelegate child_spec(args), to: GenServer, as: :child_spec
+
     def start_link(ip \\ {192,168,1,15}) do
-        GenServer.start_link(__MODULE__, ip)
+        Connection.start_link(__MODULE__, %State{:ip => ip, port:  8009})
     end
+
+    # def start_link({ip, port}) do
+    #     Connection.start_link(__MODULE__, %{ip: ip, port: port, rest: ""})
+    #   end
 
     def play(device) do
         GenServer.call(device, :play)
@@ -134,46 +144,95 @@ defmodule Chromecast do
         # :gen_tcp.send(socket, message)
     end
 
-    def connect(ip) do
+    defp recv_message(message, socket) do
+        :ssl.recv(socket, length(message))
+        # :gen_tcp.send(socket, message)
+    end
+
+    def connect(_, state) do
         # https://github.com/pcorey/bitcoin_network/blob/6072b3c71a4eef81540464f7ff2fda5951a331cf/lib/bitcoin_network/node.ex#L96
         Logger.debug("connect:")
         #? https://www.erlang.org/doc/man/ssl#handshake_continue-3
-        # with {:ok, ssl} <-
-        :ssl.connect(ip, 8009,[
+        opts = [
             :binary,
             {:active, true},
             {:reuseaddr, true},
             {:verify, :verify_none},
             {:cacerts, :public_key.cacerts_get()}
-            ])
-        #     :ok <- connect_channel(:receiver, state) do
-        #         {:ok, Map.put_new(state, :ssl, ssl)}
-        #     # else ->
-        #     #     {:backoff, 1000, state}
-        #     end
+            ]
+        message = create_message(:con,
+        %{:type => "CONNECT", :origin => %{}, :requestId => state.request_id},
+        state.destination_id) |> encode()
+        case :ssl.connect(state.ip, 8009, opts) do
+            {:ok, sock} ->
+                {:ok, %State{state | ssl: sock}}
+            {:error, _} ->
+              {:backoff, 1000, state}
+                        # _ -> {:backoff, 1000, state}
+        end
+        case send_message(message, state.ssl) do
+            :ok ->
+                {:reply, :ok, state}
+            {:error, _} = error ->
+                 {:disconnect, error, error, state}
+        end
+        message = create_message(@receiver_status,
+                        %{:type => "GET_STATUS", :requestId => state.request_id},
+                        state.destination_id) |> encode()
+        case send_message(message, state.ssl) do
+            :ok ->
+                {:reply, :ok, state}
+            {:error, _} = error ->
+                 {:disconnect, error, error, state}
+        end
 
-            # state = %State{:ssl => ssl, :ip => ip}
-            # state = connect_channel(:receiver, state)
-            # state = connect_channel(:media, state)
-        # :ssl.listen(sock)
-            # :ssl.connect(ip, 8009, [:binary, {:reuseaddr, true}])
     end
+    # def connect(ip) do
+    #     # https://github.com/pcorey/bitcoin_network/blob/6072b3c71a4eef81540464f7ff2fda5951a331cf/lib/bitcoin_network/node.ex#L96
+    #     Logger.debug("connect:")
+    #     #? https://www.erlang.org/doc/man/ssl#handshake_continue-3
+    #     # with {:ok, ssl} <-
+    #     :ssl.connect(ip, 8009,[
+    #         :binary,
+    #         {:active, true},
+    #         {:reuseaddr, true},
+    #         {:verify, :verify_none},
+    #         {:cacerts, :public_key.cacerts_get()}
+    #         ])
+    # end
 
 
-    def init(ip) do
+    # def init(ip) do
+    #     Logger.debug("init:")
+    #     {:ok, ssl} = connect(ip)
+    #     state = %State{:ssl => ssl, :ip => ip}
+    #     # state = %State{:ip => ip}
+    #     state = connect_channel(:receiver, state)
+    #     state = connect_channel(:media, state)
+    #     {:ok, state}
+    # end
+    @impl true
+    def init(state) do
         Logger.debug("init:")
-        {:ok, ssl} = connect(ip)
-        state = %State{:ssl => ssl, :ip => ip}
-        # state = %State{:ip => ip}
-        state = connect_channel(:receiver, state)
-        state = connect_channel(:media, state)
-        {:ok, state}
+        {:connect, nil, state}
+        # {:connect, :init, state}
     end
 
+    @impl true
     def handle_call(:state, _from, state) do
         Logger.debug("handle_call.:state:")
-        {:reply, state, state}
+        {:reply, state,state}
+        # case recv_message() do
+        #     {:ok, _} = ok ->
+        #       {:reply, ok, s}
+        #     {:error, :timeout} = timeout ->
+        #       {:reply, timeout, s}
+        #     {:error, _} = error ->
+        #       {:disconnect, error, error, s}
+        #   end
+        # {:state_info, state}
     end
+
     # TODO: this will require testing, especially for streamType
     def handle_call({:play_media, url, contentType, streamType}, _from, state) do
         Logger.debug("handle_call.:play_media")
@@ -223,21 +282,21 @@ defmodule Chromecast do
         Logger.debug("handle_info.:ssl_closed:")
         Logger.debug("SSL Connection Closed. Re-opening...")
         # {:ok, ssl}= connect(nil,state)
-        {:ok, ssl} =  connect(state.ip)
-        state = %State{state | :ssl => ssl}
-        state = connect_channel(:receiver, state)
+        # {:ok, ssl} =  connect(state.ip)
+        # state = %State{state | :ssl => ssl}
+        # state = connect_channel(:receiver, state)
         {:noreply, state}
     end
 
-    def handle_info({:ssl_closed, _}, {:sslsocket, _, state}) do
-        Logger.debug("handle_info.:ssl_closed:")
-        Logger.debug("SSL Connection Closed. Re-opening...")
-        # {:ok, ssl} = connect(nil,state)
-        {:ok, ssl} =  connect(state.ip)
-        state = %State{state | :ssl => ssl}
-        state = connect_channel(:receiver, state)
-        {:noreply, state}
-    end
+    # def handle_info({:ssl_closed, _}, {:sslsocket, _, state}) do
+    #     Logger.debug("handle_info.:ssl_closed:")
+    #     Logger.debug("SSL Connection Closed. Re-opening...")
+    #     {:ok, ssl} = connect(nil,state)
+    #     # {:ok, ssl} =  connect(state.ip)
+    #     state = %State{state | :ssl => ssl}
+    #     state = connect_channel(:receiver, state)
+    #     {:noreply, state}
+    # end
 
     @impl true
     # def handle_info({:ssl, {sslsocket, new_ssl, _}, data}, state) do
@@ -316,6 +375,7 @@ defmodule Chromecast do
     end
 
     def encode(msg) do
+        Logger.debug "encode: #{inspect msg}"
         Chromecast.CastMessage.encode(msg)
         # << byte_size(1)::big-unsigned-integer-size(32) >> <> m
     end

@@ -21,10 +21,39 @@ defmodule Air2Cast do
  #  @spec start(_type, _args) :: :ok | :error
   def start(_type, _args) do
     IO.puts "starting"
-    # devs = CastDevice.FindDevices.start!
-    {:ok, device} = Chromecast.start_link({192, 168, 2, 219})
+    children = [
+      # The Counter is a child started via Counter.start_link(0)
+      #Chromecast.child_spec({192, 168, 2, 219})
+      %{
+        id: Chromecast,
+        start:
+          {Chromecast, :start_link,
+           [
+             {
+              {192, 168, 2, 219}
+              #  Application.get_env(:bitcoin_network, :ip),
+              #  Application.get_env(:bitcoin_network, :port)
+             }
+           ]}
+      }
+    ]
+    opts = [
+      strategy: :one_for_one, name: Chromecast.Supervisor
+    ]
+    # Now we start the supervisor with the children and a strategy
+    {:ok, device} = Supervisor.start_link(children, opts)
+
+    # After started, we can query the supervisor for information
+    #? https://elixirschool.com/en/lessons/advanced/otp_supervisors
+    Supervisor.count_children(device)
     Chromecast.state(device)
-    Chromecast.state(device)
+
+
+    #=> %{active: 1, specs: 1, supervisors: 0, workers: 1}
+
+    # {:ok, device} = Chromecast.start_link()
+    # Chromecast.state(device)
+    # Chromecast.state(device)
 
     # devices = []
     # devices = for d <- 0..length(devs) do
